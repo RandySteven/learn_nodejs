@@ -10,6 +10,8 @@ require('dotenv').config()
 const PORT = process.env.PORT
 const URL = process.env.URL
 
+app.set('view engine', 'ejs')
+
 app.use(bodyParser.json())
 app.use(express.urlencoded({extended:true}))
 

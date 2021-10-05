@@ -29,60 +29,45 @@ const register = async (req, res) => {
 
 const verifyUserLogin = async (email, password) => {
     try {
-        const user = await User.find({email}).lean()
+        const user = await User.findOne({email}).lean()
         if(!user){
             return {status:'error', error:'email is not found'}
         }
+        console.log(user.password)
 
-        if(await bcrypt.compare(password, user.password)){
-            token = jwt.sign({id:user._id, full_name:user.full_name, email:user.email, type:'user'}, JWT_TOKEN)
+        let verify = await bcrypt.compare(password, user.password)
+        console.log(verify)
+        if(verify){
+            token = jwt.sign({id:user._id, full_name:user.full_name, email:user.email, type:'user'}, JWT_TOKEN, {expiresIn: '2h'})
             return {status:'ok', data:token}
+        }else{
+            return {status:'error', error:'password is invalid'}
         }
 
-        return {status:'error', error:'password is invalid'}
     } catch (error) {
         console.log(error)
         return {status:'error', error:'time out'}
     }
 }
 
-const login = async (req, res, next) => {
+const login = async (req, res) => {
     try {        
-        const {email, password} = req.body
-        const response = verifyUserLogin(email, password)
+        let {email, password} = req.body
+        let response = await verifyUserLogin(email, password)
         if(response.status === 'ok'){
             res.cookie('token', token, {maxAge: 2 * 60 * 60 * 1000, httpOnly: true})
-            next()
+            res.status(201).send({response:response})
         }else{
-            res.json(response)
+            res.send({response:response})
         }
     } catch (error) {
         console.log(error)
     }
 }
 
-const verifyToken = (token) => {
-    try {
-        const verify = jwt.verify(token, JWT_TOKEN)
-        return verify.type === 'user' ? true : false
-    } catch (error) {
-        console.log(JSON.stringify(error), "error")
-        return false        
-    }
-}
-
-const getUserRequest = (req, res, next) => {
-    const {token} = req.cookies
-    if(verifyToken(token)){
-        next()
-    }else{
-        return res.redirect('login')
-    }
-}
-
 const logout = (req, res) => {
     res.cookie('token', token, {maxAge:1})
-    res.redirect('/login')
+    res.send({message:'Logout Success'})
 }
 
-module.exports = {register, login, getUserRequest, token, logout}
+module.exports = {register, login, logout}
