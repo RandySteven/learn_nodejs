@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 const JWT_TOKEN = process.env.JWT_TOKEN
-const cookieParser = require('cookie-parser')
 
 /**
  * 

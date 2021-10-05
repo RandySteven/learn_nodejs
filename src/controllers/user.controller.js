@@ -1,6 +1,5 @@
 const User = require('../models/user.model')
 const jwt = require('jsonwebtoken')
-var cookieParser = require('cookie-parser')
 const bcrypt = require('bcryptjs')
 const salt = 10
 require('dotenv').config()
